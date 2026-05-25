@@ -1,0 +1,2 @@
+# BerryPatchGuide
+For app testing
