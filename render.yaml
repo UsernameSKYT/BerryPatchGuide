@@ -1,13 +1,11 @@
 services:
   - type: web
-    name: berry-patch-guide-backend
+    name: berrypatchguide
     env: python
     plan: free
-    buildCommand: "bash build.sh"
-    startCommand: "bash start.sh"
+    buildCommand: "cd backend && pip install -r requirements.txt && python -m playwright install chromium"
+    startCommand: "cd backend && uvicorn main:app --host 0.0.0.0 --port 10000"
     envVars:
       - key: PYTHON_VERSION
         value: "3.11"
-      - key: PORT
-        value: "8000"
-    healthCheckPath: /
+    healthCheckPath: /healthz
