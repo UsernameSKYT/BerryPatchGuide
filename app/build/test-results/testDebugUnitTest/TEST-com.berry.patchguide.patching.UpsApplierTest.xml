@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.berry.patchguide.patching.UpsApplierTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-05-17T14:16:56.795Z" hostname="DESKTOP-6KVO3F9" time="0.014">
+  <properties/>
+  <testcase name="UPS CRC32 검증 유틸리티" classname="com.berry.patchguide.patching.UpsApplierTest" time="0.002"/>
+  <testcase name="UPS 단순 XOR 패치 라운드트립" classname="com.berry.patchguide.patching.UpsApplierTest" time="0.009"/>
+  <testcase name="UPS 포맷 감지" classname="com.berry.patchguide.patching.UpsApplierTest" time="0.001"/>
+  <testcase name="UPS VLI 인코딩 디코딩 일치" classname="com.berry.patchguide.patching.UpsApplierTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

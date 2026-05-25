@@ -1,0 +1,1 @@
+-keep,allowobfuscation,allowshrinking class com.berry.patchguide.ui.payment.PaymentViewModel

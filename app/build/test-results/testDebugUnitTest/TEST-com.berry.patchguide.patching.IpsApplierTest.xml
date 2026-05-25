@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.berry.patchguide.patching.IpsApplierTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-05-17T14:16:56.737Z" hostname="DESKTOP-6KVO3F9" time="0.056">
+  <properties/>
+  <testcase name="IPS 빈 패치 적용 시 ROM 원본 동일" classname="com.berry.patchguide.patching.IpsApplierTest" time="0.014"/>
+  <testcase name="IPS RLE 레코드 적용" classname="com.berry.patchguide.patching.IpsApplierTest" time="0.019"/>
+  <testcase name="IPS 단순 레코드 적용 라운드트립" classname="com.berry.patchguide.patching.IpsApplierTest" time="0.021"/>
+  <testcase name="IPS 포맷 감지" classname="com.berry.patchguide.patching.IpsApplierTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.berry.patchguide.patching.BpsApplierTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-05-17T14:16:56.665Z" hostname="DESKTOP-6KVO3F9" time="0.07">
+  <properties/>
+  <testcase name="BPS VLI 인코딩 디코딩 일치" classname="com.berry.patchguide.patching.BpsApplierTest" time="0.02"/>
+  <testcase name="BPS Mode 1 TargetRead 라운드트립" classname="com.berry.patchguide.patching.BpsApplierTest" time="0.031"/>
+  <testcase name="BPS Mode 0 SourceRead 라운드트립" classname="com.berry.patchguide.patching.BpsApplierTest" time="0.012"/>
+  <testcase name="BPS 포맷 감지" classname="com.berry.patchguide.patching.BpsApplierTest" time="0.002"/>
+  <testcase name="PatchFormat ZIP 감지" classname="com.berry.patchguide.patching.BpsApplierTest" time="0.001"/>
+  <testcase name="PatchFormat UNKNOWN 감지" classname="com.berry.patchguide.patching.BpsApplierTest" time="0.001"/>
+  <testcase name="PatchFormat xdelta 감지" classname="com.berry.patchguide.patching.BpsApplierTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

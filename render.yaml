@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: berry-patch-guide-backend
+    env: python
+    plan: free
+    buildCommand: "bash build.sh"
+    startCommand: "bash start.sh"
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11"
+      - key: PORT
+        value: "8000"
+    healthCheckPath: /

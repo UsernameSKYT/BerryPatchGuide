@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">베리의 패치 다용도 가이드</string>
+    <string name="tab_home">홈</string>
+    <string name="tab_search">검색</string>
+    <string name="tab_library">라이브러리</string>
+    <string name="tab_settings">설정</string>
+    <string name="tab_payment">결제</string>
+</resources>
