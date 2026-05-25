@@ -208,6 +208,11 @@ def _to_patch_item(d: dict) -> PatchItem:
 
 
 # ─── Endpoints ───────────────────────────────────────────────────────────────
+@app.get("/healthz")
+def health_check():
+    return {"status": "ok"}
+
+
 @app.get("/")
 def root():
     return {"message": "Berry Patch Guide API", "version": "2.0.0"}
