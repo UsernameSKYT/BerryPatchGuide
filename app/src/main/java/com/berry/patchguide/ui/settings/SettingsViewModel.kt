@@ -17,7 +17,8 @@ sealed class SettingsUiState {
     data class Success(
         val darkMode: Boolean,
         val notifications: Boolean,
-        val autoUpdate: Boolean
+        val autoUpdate: Boolean,
+        val useCloudServer: Boolean
     ) : SettingsUiState()
 }
 
@@ -32,9 +33,10 @@ class SettingsViewModel @Inject constructor(
         combine(
             settingsDataStore.darkMode,
             settingsDataStore.notifications,
-            settingsDataStore.autoUpdate
-        ) { darkMode, notifications, autoUpdate ->
-            SettingsUiState.Success(darkMode, notifications, autoUpdate)
+            settingsDataStore.autoUpdate,
+            settingsDataStore.useCloudServer
+        ) { darkMode, notifications, autoUpdate, useCloudServer ->
+            SettingsUiState.Success(darkMode, notifications, autoUpdate, useCloudServer)
         }
             .onEach { _uiState.value = it }
             .launchIn(viewModelScope)
@@ -55,6 +57,12 @@ class SettingsViewModel @Inject constructor(
     fun setAutoUpdate(enabled: Boolean) {
         viewModelScope.launch {
             settingsDataStore.setAutoUpdate(enabled)
+        }
+    }
+
+    fun setUseCloudServer(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsDataStore.setUseCloudServer(enabled)
         }
     }
 }

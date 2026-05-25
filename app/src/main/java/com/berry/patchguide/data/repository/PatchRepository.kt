@@ -1,57 +1,87 @@
 package com.berry.patchguide.data.repository
 
 import android.util.Log
+import com.berry.patchguide.data.local.datastore.SettingsDataStore
 import com.berry.patchguide.data.model.PatchItem
 import com.berry.patchguide.data.remote.api.BerryPatchApi
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
 import java.security.MessageDigest
 import javax.inject.Inject
+import javax.inject.Named
 import javax.inject.Singleton
 
 @Singleton
 class PatchRepository @Inject constructor(
-    private val api: BerryPatchApi,
+    @Named("local") private val localApi: BerryPatchApi,
+    @Named("cloud") private val cloudApi: BerryPatchApi,
+    private val settingsDataStore: SettingsDataStore,
     private val okHttpClient: OkHttpClient
 ) {
     private val TAG = "PatchRepository"
+    private val REQUEST_TIMEOUT_MS = 8_000L
+
+    /**
+     * 설정에 따라 우선 서버 선택 + 실패 시 자동 fallback
+     */
+    private suspend fun <T> callWithFallback(
+        block: suspend (BerryPatchApi) -> T
+    ): Result<T> {
+        val useCloud = settingsDataStore.useCloudServer.first()
+        val primary = if (useCloud) cloudApi else localApi
+        val secondary = if (useCloud) localApi else cloudApi
+        val primaryName = if (useCloud) "cloud" else "local"
+        val secondaryName = if (useCloud) "local" else "cloud"
+
+        // 1) Primary 시도
+        val primaryResult = withTimeoutOrNull(REQUEST_TIMEOUT_MS) {
+            runCatching { block(primary) }
+        } ?: runCatching { throw java.util.concurrent.TimeoutException("$primaryName timeout") }
+
+        if (primaryResult.isSuccess) {
+            Log.d(TAG, "API success via $primaryName")
+            return primaryResult
+        }
+
+        Log.w(TAG, "API failed via $primaryName: ${primaryResult.exceptionOrNull()?.message}, trying $secondaryName...")
+
+        // 2) Secondary fallback
+        val secondaryResult = withTimeoutOrNull(REQUEST_TIMEOUT_MS) {
+            runCatching { block(secondary) }
+        } ?: runCatching { throw java.util.concurrent.TimeoutException("$secondaryName timeout") }
+
+        return secondaryResult.onFailure {
+            Log.e(TAG, "API failed via $secondaryName: ${it.message}")
+        }
+    }
 
     suspend fun searchAll(query: String, page: Int = 1, limit: Int = 20): Result<List<PatchItem>> {
-        return try {
+        return callWithFallback { api ->
             val response = api.search(query, page, limit)
             if (response.isSuccessful) {
-                val body = response.body()
-                Result.success(body?.results ?: emptyList())
+                response.body()?.results ?: emptyList()
             } else {
-                Result.failure(Exception("검색 실패: ${response.code()}"))
+                throw Exception("검색 실패: ${response.code()}")
             }
-        } catch (e: Exception) {
-            Result.failure(e)
         }
     }
 
     suspend fun getFeatured(): Result<List<PatchItem>> {
-        return try {
+        return callWithFallback { api ->
             val response = api.getFeatured()
             if (response.isSuccessful) {
-                val body = response.body()
-                Result.success(body?.results ?: emptyList())
+                response.body()?.results ?: emptyList()
             } else {
-                Result.failure(Exception("추천 패치 불러오기 실패: ${response.code()}"))
+                throw Exception("추천 패치 불러오기 실패: ${response.code()}")
             }
-        } catch (e: Exception) {
-            Result.failure(e)
         }
     }
 
     /**
      * 패치 파일을 다운로드합니다.
-     *
-     * @param url 다운로드 URL (HTTPS 강제)
-     * @param dest 저장할 로컬 파일
-     * @param progress 진행률 콜백 (0f ~ 1f)
-     * @return 다운로드된 파일 (SHA-256 계산 후 반환)
      */
     fun downloadPatch(url: String, dest: File, progress: (Float) -> Unit): File {
         val safeUrl = if (url.startsWith("http://")) url.replace("http://", "https://") else url

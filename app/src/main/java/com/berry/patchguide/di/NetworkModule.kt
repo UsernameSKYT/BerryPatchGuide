@@ -11,11 +11,17 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import javax.inject.Named
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
+
+    // ─── Constants ───────────────────────────────────────────────────────────
+    // TODO: Render 배포 완료 후 실제 클라우드 URL로 교체
+    private const val LOCAL_BASE_URL = "http://172.30.1.79:8000/"
+    private const val CLOUD_BASE_URL = "https://berry-patch-guide-backend.onrender.com/"
 
     @Provides
     @Singleton
@@ -36,11 +42,13 @@ object NetworkModule {
             .build()
     }
 
+    // ─── Local Retrofit ──────────────────────────────────────────────────────
     @Provides
     @Singleton
-    fun provideRetrofit(okHttpClient: OkHttpClient, moshi: Moshi): Retrofit {
+    @Named("local")
+    fun provideLocalRetrofit(okHttpClient: OkHttpClient, moshi: Moshi): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("http://172.30.1.79:8000/")
+            .baseUrl(LOCAL_BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(MoshiConverterFactory.create(moshi).asLenient())
             .build()
@@ -48,7 +56,27 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideBerryPatchApi(retrofit: Retrofit): BerryPatchApi {
+    @Named("local")
+    fun provideLocalApi(@Named("local") retrofit: Retrofit): BerryPatchApi {
+        return retrofit.create(BerryPatchApi::class.java)
+    }
+
+    // ─── Cloud Retrofit ──────────────────────────────────────────────────────
+    @Provides
+    @Singleton
+    @Named("cloud")
+    fun provideCloudRetrofit(okHttpClient: OkHttpClient, moshi: Moshi): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl(CLOUD_BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(MoshiConverterFactory.create(moshi).asLenient())
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    @Named("cloud")
+    fun provideCloudApi(@Named("cloud") retrofit: Retrofit): BerryPatchApi {
         return retrofit.create(BerryPatchApi::class.java)
     }
 }

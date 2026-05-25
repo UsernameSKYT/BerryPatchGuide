@@ -73,6 +73,12 @@ fun SettingsScreen(
                         checked = state.autoUpdate,
                         onCheckedChange = viewModel::setAutoUpdate
                     )
+                    SettingItem(
+                        title = "클로드 서버 사용",
+                        description = "외부에서도 접속 가능한 클라우드 서버를 사용합니다 (꺼두면 로컬 서버)",
+                        checked = state.useCloudServer,
+                        onCheckedChange = viewModel::setUseCloudServer
+                    )
                 }
             }
 

@@ -24,11 +24,13 @@ class SettingsDataStore @Inject constructor(
         val DARK_MODE = booleanPreferencesKey("dark_mode")
         val NOTIFICATIONS = booleanPreferencesKey("notifications")
         val AUTO_UPDATE = booleanPreferencesKey("auto_update")
+        val USE_CLOUD_SERVER = booleanPreferencesKey("use_cloud_server")
     }
 
     val darkMode: Flow<Boolean> = dataStore.data.map { it[DARK_MODE] ?: false }
     val notifications: Flow<Boolean> = dataStore.data.map { it[NOTIFICATIONS] ?: true }
     val autoUpdate: Flow<Boolean> = dataStore.data.map { it[AUTO_UPDATE] ?: true }
+    val useCloudServer: Flow<Boolean> = dataStore.data.map { it[USE_CLOUD_SERVER] ?: false }
 
     suspend fun setDarkMode(enabled: Boolean) {
         dataStore.edit { it[DARK_MODE] = enabled }
@@ -40,5 +42,9 @@ class SettingsDataStore @Inject constructor(
 
     suspend fun setAutoUpdate(enabled: Boolean) {
         dataStore.edit { it[AUTO_UPDATE] = enabled }
+    }
+
+    suspend fun setUseCloudServer(enabled: Boolean) {
+        dataStore.edit { it[USE_CLOUD_SERVER] = enabled }
     }
 }
