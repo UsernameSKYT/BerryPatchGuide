@@ -21,7 +21,7 @@ object NetworkModule {
     // ─── Constants ───────────────────────────────────────────────────────────
     // TODO: Render 배포 완료 후 실제 클라우드 URL로 교체
     private const val LOCAL_BASE_URL = "http://172.30.1.79:8000/"
-    private const val CLOUD_BASE_URL = "https://berry-patch-guide-backend.onrender.com/"
+    private const val CLOUD_BASE_URL = "https://berrypatchguide.onrender.com/"
 
     @Provides
     @Singleton
