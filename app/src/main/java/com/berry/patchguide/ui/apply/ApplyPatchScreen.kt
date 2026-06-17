@@ -42,7 +42,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -62,7 +61,6 @@ fun ApplyPatchScreen(
     viewModel: ApplyPatchViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
 
     // 공유 인텐트 URI가 있으면 자동으로 로드
     LaunchedEffect(sharedPatchUri) {
@@ -143,29 +141,12 @@ fun ApplyPatchScreen(
                 is ApplyUiState.Success -> {
                     SuccessStep(
                         report = state,
-                        onDone = {
-                            val activity = context as? android.app.Activity
-                            if (activity != null) {
-                                viewModel.showInterstitialAd(activity) { onNavigateBack() }
-                            } else {
-                                onNavigateBack()
-                            }
-                        },
+                        onDone = onNavigateBack,
                         onViewGuide = {
-                            val activity = context as? android.app.Activity
-                            if (activity != null) {
-                                viewModel.showInterstitialAd(activity) {
-                                    onNavigateToGuide(
-                                        state.report.outputPath,
-                                        state.report.appliedFormat.name
-                                    )
-                                }
-                            } else {
-                                onNavigateToGuide(
-                                    state.report.outputPath,
-                                    state.report.appliedFormat.name
-                                )
-                            }
+                            onNavigateToGuide(
+                                state.report.outputPath,
+                                state.report.appliedFormat.name
+                            )
                         }
                     )
                 }

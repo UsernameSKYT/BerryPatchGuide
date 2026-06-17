@@ -26,6 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.berry.patchguide.BuildConfig
 import com.berry.patchguide.ui.components.BannerAdView
+import com.berry.patchguide.ui.components.NativeAdCard
 import com.berry.patchguide.ui.components.PatchCard
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -36,6 +37,7 @@ fun HomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isAdFree by viewModel.isAdFree.collectAsStateWithLifecycle()
+    val nativeAd by viewModel.nativeAd.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -95,9 +97,7 @@ fun HomeScreen(
                             }
                         }
                     } else {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize()
-                        ) {
+                        LazyColumn(modifier = Modifier.fillMaxSize()) {
                             item {
                                 Text(
                                     text = "추천 패치",
@@ -105,7 +105,8 @@ fun HomeScreen(
                                     modifier = Modifier.padding(16.dp)
                                 )
                             }
-                            items(state.patches) { patch ->
+                            items(state.patches.size) { index ->
+                                val patch = state.patches[index]
                                 PatchCard(
                                     patch = patch,
                                     onApplyClick = {
@@ -116,6 +117,18 @@ fun HomeScreen(
                                         )
                                     }
                                 )
+                                // 네이티브 광고: 첫 번째 패치 아이템 바로 아래 1회 삽입
+                                if (!isAdFree && index == 0) {
+                                    val ad = nativeAd
+                                    if (ad != null) {
+                                        NativeAdCard(
+                                            nativeAd = ad,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 16.dp, vertical = 4.dp)
+                                        )
+                                    }
+                                }
                             }
                             item {
                                 Spacer(modifier = Modifier.height(16.dp))
