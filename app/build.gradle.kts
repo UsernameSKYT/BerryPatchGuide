@@ -6,6 +6,9 @@ plugins {
     alias(libs.plugins.hilt)
 }
 
+// Redirect build outputs to ASCII path to avoid CMake crashes on Korean username
+layout.buildDirectory.set(file("C:/tmp/bpo"))
+
 android {
     namespace = "com.berry.patchguide"
     compileSdk = 36
@@ -49,7 +52,8 @@ android {
     externalNativeBuild {
         cmake {
             path = file("src/main/cpp/CMakeLists.txt")
-            version = "3.22.1"
+            version = "3.18.1"
+            buildStagingDirectory = file("C:/tmp/cxx_build")
         }
     }
 }
