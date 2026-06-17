@@ -3,11 +3,9 @@ package com.berry.patchguide.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.billingclient.api.Purchase
-import com.berry.patchguide.data.ads.AdManager
 import com.berry.patchguide.data.billing.BillingManager
 import com.berry.patchguide.data.model.PatchItem
 import com.berry.patchguide.data.repository.PatchRepository
-import com.google.android.gms.ads.nativead.NativeAd
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -26,8 +24,7 @@ sealed class HomeUiState {
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val patchRepository: PatchRepository,
-    private val billingManager: BillingManager,
-    private val adManager: AdManager
+    private val billingManager: BillingManager
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
     val uiState: StateFlow<HomeUiState> = _uiState
@@ -41,16 +38,9 @@ class HomeViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
-    val nativeAd: StateFlow<NativeAd?> = adManager.nativeAd
-
     init {
         loadFeatured()
         billingManager.startConnection()
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        adManager.destroyNativeAd()
     }
 
     private fun loadFeatured() {

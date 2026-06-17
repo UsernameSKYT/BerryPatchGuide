@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.berry.patchguide.BuildConfig
-import com.berry.patchguide.ui.components.NativeAdView
+import com.berry.patchguide.ui.components.BannerAdView
 import com.berry.patchguide.ui.components.PatchCard
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -36,7 +36,6 @@ fun HomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isAdFree by viewModel.isAdFree.collectAsStateWithLifecycle()
-    val nativeAd by viewModel.nativeAd.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -53,12 +52,8 @@ fun HomeScreen(
             )
         },
         bottomBar = {
-            val ad = nativeAd
-            if (!isAdFree && ad != null) {
-                NativeAdView(
-                    nativeAd = ad,
-                    modifier = Modifier.fillMaxWidth()
-                )
+            if (!isAdFree) {
+                BannerAdView(modifier = Modifier.fillMaxWidth())
             }
         }
     ) { padding ->
