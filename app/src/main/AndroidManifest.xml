@@ -16,10 +16,10 @@
         android:theme="@style/Theme.BerryPatchGuide"
         android:usesCleartextTraffic="true">
 
-        <!-- AdMob App ID -->
+        <!-- AdMob App ID (test ID for debugging) -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-2046242748505446~5257735104" />
+            android:value="ca-app-pub-3940256099942544~3347511713" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

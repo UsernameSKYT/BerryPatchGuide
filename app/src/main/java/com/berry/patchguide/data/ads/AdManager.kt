@@ -26,8 +26,9 @@ class AdManager @Inject constructor(
     private var retryRunnable: Runnable? = null
 
     companion object {
-        const val BANNER_AD_UNIT_ID = "ca-app-pub-2046242748505446/9336580917"
-        const val NATIVE_AD_UNIT_ID = "ca-app-pub-2046242748505446/6758519030"
+        // Test IDs for debugging
+        const val BANNER_AD_UNIT_ID = "ca-app-pub-3940256099942544/6300978111"
+        const val NATIVE_AD_UNIT_ID = "ca-app-pub-3940256099942544/2247696110"
     }
 
     private val _isInitialized = MutableStateFlow(false)
