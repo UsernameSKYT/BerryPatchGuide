@@ -22,10 +22,9 @@ class AdManager @Inject constructor(
 ) {
     private val TAG = "AdManager"
 
-    // 테스트 광고 단위 ID (출시 전 실제 ID로 교체)
     companion object {
-        const val BANNER_AD_UNIT_ID = "ca-app-pub-3940256099942544/6300978111"
-        const val INTERSTITIAL_AD_UNIT_ID = "ca-app-pub-3940256099942544/1033173712"
+        const val BANNER_AD_UNIT_ID = "ca-app-pub-2046242748505446/6758519030"
+        const val INTERSTITIAL_AD_UNIT_ID = "ca-app-pub-3940256099942544/1033173712" // TODO: 실제 전면광고 단위 ID로 교체
     }
 
     private val _isInitialized = MutableStateFlow(false)
