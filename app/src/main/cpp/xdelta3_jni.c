@@ -17,14 +17,10 @@
 #include <errno.h>
 
 /* xdelta3 single-file build: include the .c directly so we get the
- * full implementation without a separate compilation unit. */
-#define XDELTA3_INTERNAL
-#define XD3_POSIX 0
-#define XD3_STDIO 1
-#define XD3_WIN32 0
-#define SECONDARY_DJW 0
-#define SECONDARY_FGK 0
-#define SECONDARY_LZMA 0
+ * full implementation without a separate compilation unit.
+ * All compile-time defines (XDELTA3_INTERNAL, XD3_POSIX, etc.) are
+ * injected via CMakeLists.txt target_compile_definitions to avoid
+ * redefinition warnings. */
 #include "xdelta3/xdelta3.c"
 
 #define LOG_TAG "XdeltaNative"

@@ -38,6 +38,26 @@ target_compile_definitions(xdelta3_jni PRIVATE
     XDELTA3_INTERNAL=1
 )
 
+# Size macros normally set by autoconf configure script.
+# Detect 32-bit vs 64-bit ABI at CMake configure time.
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    # 64-bit ABI (arm64-v8a, x86_64): size_t=8, unsigned long=8
+    target_compile_definitions(xdelta3_jni PRIVATE
+        SIZEOF_SIZE_T=8
+        SIZEOF_UNSIGNED_LONG=8
+        SIZEOF_UNSIGNED_INT=4
+        SIZEOF_UNSIGNED_LONG_LONG=8
+    )
+else()
+    # 32-bit ABI (armeabi-v7a, x86): size_t=4, unsigned long=4
+    target_compile_definitions(xdelta3_jni PRIVATE
+        SIZEOF_SIZE_T=4
+        SIZEOF_UNSIGNED_LONG=4
+        SIZEOF_UNSIGNED_INT=4
+        SIZEOF_UNSIGNED_LONG_LONG=8
+    )
+endif()
+
 # Link against Android log library
 find_library(log-lib log)
 target_link_libraries(xdelta3_jni ${log-lib})
