@@ -11,6 +11,8 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.berry.patchguide.data.ads.AdManager
+import com.berry.patchguide.data.billing.BillingManager
 import com.berry.patchguide.data.repository.PatchRepository
 import com.berry.patchguide.patching.PatchApplier
 import com.berry.patchguide.patching.PatchFormat
@@ -46,6 +48,8 @@ sealed class ApplyUiState {
 class ApplyPatchViewModel @Inject constructor(
     application: Application,
     private val patchRepository: PatchRepository,
+    private val adManager: AdManager,
+    private val billingManager: BillingManager,
     savedStateHandle: SavedStateHandle
 ) : AndroidViewModel(application) {
 
@@ -53,6 +57,16 @@ class ApplyPatchViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow<ApplyUiState>(ApplyUiState.Idle)
     val uiState: StateFlow<ApplyUiState> = _uiState.asStateFlow()
+
+    fun isAdFree(): Boolean = billingManager.isAdFree()
+
+    fun showInterstitialAd(activity: android.app.Activity, onDismissed: () -> Unit = {}) {
+        if (!isAdFree()) {
+            adManager.showInterstitial(activity, onDismissed)
+        } else {
+            onDismissed()
+        }
+    }
 
     private val patchId: String = savedStateHandle.get<String>("patchId") ?: ""
 

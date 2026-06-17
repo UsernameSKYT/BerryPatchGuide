@@ -102,6 +102,9 @@ dependencies {
     // Billing
     implementation(libs.billing.client)
 
+    // AdMob
+    implementation(libs.admob)
+
     // Unit Tests
     testImplementation("junit:junit:4.13.2")
 }

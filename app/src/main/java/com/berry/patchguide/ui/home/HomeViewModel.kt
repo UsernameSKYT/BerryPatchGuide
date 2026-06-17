@@ -2,11 +2,16 @@ package com.berry.patchguide.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.android.billingclient.api.Purchase
+import com.berry.patchguide.data.billing.BillingManager
 import com.berry.patchguide.data.model.PatchItem
 import com.berry.patchguide.data.repository.PatchRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -18,13 +23,24 @@ sealed class HomeUiState {
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val patchRepository: PatchRepository
+    private val patchRepository: PatchRepository,
+    private val billingManager: BillingManager
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
     val uiState: StateFlow<HomeUiState> = _uiState
 
+    val isAdFree: StateFlow<Boolean> = billingManager.purchases
+        .map { purchases ->
+            purchases.any { p ->
+                p.products.contains("remove_ads") &&
+                    p.purchaseState == Purchase.PurchaseState.PURCHASED
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
     init {
         loadFeatured()
+        billingManager.startConnection()
     }
 
     private fun loadFeatured() {

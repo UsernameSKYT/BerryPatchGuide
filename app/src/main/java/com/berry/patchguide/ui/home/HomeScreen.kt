@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.berry.patchguide.BuildConfig
+import com.berry.patchguide.ui.components.BannerAdView
 import com.berry.patchguide.ui.components.PatchCard
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -34,6 +35,7 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isAdFree by viewModel.isAdFree.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -48,6 +50,11 @@ fun HomeScreen(
                     }
                 }
             )
+        },
+        bottomBar = {
+            if (!isAdFree) {
+                BannerAdView(modifier = Modifier.fillMaxWidth())
+            }
         }
     ) { padding ->
         Box(
