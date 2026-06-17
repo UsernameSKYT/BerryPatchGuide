@@ -49,7 +49,7 @@ object PatchApplier {
                 PatchFormat.IPS -> IpsApplier.apply(romIn, patch, romOut, progress)
                 PatchFormat.UPS -> UpsApplier.apply(romIn, patch, romOut, progress)
                 PatchFormat.BPS -> BpsApplier.apply(romIn, patch, romOut, progress)
-                PatchFormat.XDELTA -> throw UnsupportedOperationException(XdeltaApplier.UNSUPPORTED_MESSAGE)
+                PatchFormat.XDELTA -> XdeltaApplier.apply(romIn, patch, romOut, progress)
                 PatchFormat.ZIP -> throw UnsupportedOperationException(ZipApplier.UNSUPPORTED_MESSAGE)
                 PatchFormat.UNKNOWN -> throw IllegalArgumentException(
                     "지원하지 않는 패치 형식입니다. IPS, UPS, BPS 패치만 자동 적용 가능합니다."
