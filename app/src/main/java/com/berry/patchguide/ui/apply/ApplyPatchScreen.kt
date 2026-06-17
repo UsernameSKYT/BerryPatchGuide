@@ -38,6 +38,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,10 +55,18 @@ fun ApplyPatchScreen(
     patchId: String,
     patchTitle: String = "",
     downloadUrl: String? = null,
+    sharedPatchUri: Uri? = null,
     onNavigateBack: () -> Unit,
     viewModel: ApplyPatchViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // 공유 인텐트 URI가 있으면 자동으로 로드
+    LaunchedEffect(sharedPatchUri) {
+        if (sharedPatchUri != null) {
+            viewModel.loadSharedPatchUri(sharedPatchUri)
+        }
+    }
 
     // ROM 파일 선택 런처 (SAF)
     val romPickerLauncher = rememberLauncherForActivityResult(
@@ -92,7 +101,6 @@ fun ApplyPatchScreen(
         ) {
             when (val state = uiState) {
                 is ApplyUiState.Idle -> {
-                    // Step 1: 패치 정보 표시 + 다운로드 / 파일 선택
                     IdleStep(
                         patchId = patchId,
                         patchTitle = patchTitle,
@@ -106,13 +114,13 @@ fun ApplyPatchScreen(
 
                 is ApplyUiState.Downloading -> {
                     ProgressStep(
-                        title = "패치 다운로드 중...",
+                        title = "패치 준비 중...",
+                        label = state.label,
                         progress = state.progress
                     )
                 }
 
                 is ApplyUiState.WaitingForRom -> {
-                    // Step 2: ROM 파일 선택
                     WaitingForRomStep(
                         patchFile = state.patchFile,
                         onSelectRom = {
@@ -124,6 +132,7 @@ fun ApplyPatchScreen(
                 is ApplyUiState.Applying -> {
                     ProgressStep(
                         title = "패치 적용 중...",
+                        label = state.label,
                         progress = state.progress
                     )
                 }
@@ -138,7 +147,11 @@ fun ApplyPatchScreen(
                 is ApplyUiState.Error -> {
                     ErrorStep(
                         message = state.message,
-                        onRetry = { viewModel.resetState() },
+                        retryable = state.retryable,
+                        onRetry = {
+                            if (state.retryable) viewModel.retryDownload()
+                            else viewModel.resetState()
+                        },
                         onBack = onNavigateBack
                     )
                 }
@@ -227,6 +240,11 @@ private fun IdleStep(
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onTertiaryContainer
                 )
+                Text(
+                    text = "파일 관리자에서 패치 파일을 공유하면 자동으로 열립니다.",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                )
             }
         }
     }
@@ -290,7 +308,7 @@ private fun WaitingForRomStep(
 }
 
 @Composable
-private fun ProgressStep(title: String, progress: Float) {
+private fun ProgressStep(title: String, label: String, progress: Float) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -301,6 +319,14 @@ private fun ProgressStep(title: String, progress: Float) {
         CircularProgressIndicator()
         Spacer(modifier = Modifier.height(16.dp))
         Text(text = title, style = MaterialTheme.typography.titleMedium)
+        if (label.isNotBlank()) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
         Spacer(modifier = Modifier.height(16.dp))
         LinearProgressIndicator(
             progress = { progress },
@@ -363,7 +389,12 @@ private fun SuccessStep(report: ApplyUiState.Success, onDone: () -> Unit) {
 }
 
 @Composable
-private fun ErrorStep(message: String, onRetry: () -> Unit, onBack: () -> Unit) {
+private fun ErrorStep(
+    message: String,
+    retryable: Boolean,
+    onRetry: () -> Unit,
+    onBack: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -392,7 +423,7 @@ private fun ErrorStep(message: String, onRetry: () -> Unit, onBack: () -> Unit) 
         )
         Spacer(modifier = Modifier.height(24.dp))
         Button(onClick = onRetry, modifier = Modifier.fillMaxWidth()) {
-            Text("다시 시도")
+            Text(if (retryable) "다시 시도" else "처음으로")
         }
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {

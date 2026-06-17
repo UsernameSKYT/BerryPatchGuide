@@ -1,5 +1,6 @@
 package com.berry.patchguide.ui
 
+import android.net.Uri
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -7,6 +8,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -26,12 +28,27 @@ import com.berry.patchguide.ui.search.SearchScreen
 import com.berry.patchguide.ui.settings.SettingsScreen
 
 @Composable
-fun MainScreen() {
+fun MainScreen(sharedPatchUri: Uri? = null) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
     val showBottomBar = currentRoute in AppDestination.bottomNavEntries.map { it.route }
+
+    // 외부 공유 인텐트가 있으면 ApplyPatch 화면으로 바로 이동
+    LaunchedEffect(sharedPatchUri) {
+        if (sharedPatchUri != null) {
+            navController.navigate(
+                AppDestination.ApplyPatch.createRoute(
+                    patchId = "shared",
+                    patchTitle = "공유된 패치 파일",
+                    downloadUrl = ""
+                )
+            ) {
+                launchSingleTop = true
+            }
+        }
+    }
 
     Scaffold(
         bottomBar = {
@@ -105,6 +122,7 @@ fun MainScreen() {
                     patchId = patchId,
                     patchTitle = patchTitle,
                     downloadUrl = downloadUrl.ifBlank { null },
+                    sharedPatchUri = if (patchId == "shared") sharedPatchUri else null,
                     onNavigateBack = { navController.popBackStack() }
                 )
             }
