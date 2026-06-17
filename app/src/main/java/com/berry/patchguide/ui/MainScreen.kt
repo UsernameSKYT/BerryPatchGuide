@@ -20,6 +20,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.berry.patchguide.ui.apply.ApplyPatchScreen
+import com.berry.patchguide.ui.guide.GuideScreen
 import com.berry.patchguide.ui.home.HomeScreen
 import com.berry.patchguide.ui.library.LibraryScreen
 import com.berry.patchguide.ui.navigation.AppDestination
@@ -123,6 +124,26 @@ fun MainScreen(sharedPatchUri: Uri? = null) {
                     patchTitle = patchTitle,
                     downloadUrl = downloadUrl.ifBlank { null },
                     sharedPatchUri = if (patchId == "shared") sharedPatchUri else null,
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToGuide = { outputPath, appliedFormat ->
+                        navController.navigate(
+                            AppDestination.Guide.createRoute(outputPath, appliedFormat)
+                        )
+                    }
+                )
+            }
+            composable(
+                route = "guide?outputPath={outputPath}&format={format}",
+                arguments = listOf(
+                    navArgument("outputPath") { type = NavType.StringType; defaultValue = "" },
+                    navArgument("format") { type = NavType.StringType; defaultValue = "" }
+                )
+            ) { backStackEntry ->
+                val outputPath = backStackEntry.arguments?.getString("outputPath") ?: ""
+                val format = backStackEntry.arguments?.getString("format") ?: ""
+                GuideScreen(
+                    outputPath = outputPath.ifBlank { null },
+                    appliedFormat = format.ifBlank { null },
                     onNavigateBack = { navController.popBackStack() }
                 )
             }

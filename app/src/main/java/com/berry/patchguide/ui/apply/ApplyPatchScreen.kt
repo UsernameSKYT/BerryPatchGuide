@@ -57,6 +57,7 @@ fun ApplyPatchScreen(
     downloadUrl: String? = null,
     sharedPatchUri: Uri? = null,
     onNavigateBack: () -> Unit,
+    onNavigateToGuide: (outputPath: String, appliedFormat: String) -> Unit = { _, _ -> },
     viewModel: ApplyPatchViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -140,7 +141,13 @@ fun ApplyPatchScreen(
                 is ApplyUiState.Success -> {
                     SuccessStep(
                         report = state,
-                        onDone = onNavigateBack
+                        onDone = onNavigateBack,
+                        onViewGuide = {
+                            onNavigateToGuide(
+                                state.report.outputPath,
+                                state.report.appliedFormat.name
+                            )
+                        }
                     )
                 }
 
@@ -341,7 +348,11 @@ private fun ProgressStep(title: String, label: String, progress: Float) {
 }
 
 @Composable
-private fun SuccessStep(report: ApplyUiState.Success, onDone: () -> Unit) {
+private fun SuccessStep(
+    report: ApplyUiState.Success,
+    onDone: () -> Unit,
+    onViewGuide: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -380,6 +391,15 @@ private fun SuccessStep(report: ApplyUiState.Success, onDone: () -> Unit) {
         }
 
         Button(
+            onClick = onViewGuide,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(Icons.Default.Info, contentDescription = null)
+            Spacer(modifier = Modifier.size(8.dp))
+            Text("다음 단계 가이드 보기")
+        }
+
+        OutlinedButton(
             onClick = onDone,
             modifier = Modifier.fillMaxWidth()
         ) {

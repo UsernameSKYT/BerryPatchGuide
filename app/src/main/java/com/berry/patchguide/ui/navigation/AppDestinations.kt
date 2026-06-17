@@ -22,6 +22,10 @@ sealed class AppDestination(
         fun createRoute(patchId: String, patchTitle: String = "", downloadUrl: String = "") =
             "apply/$patchId?title=${Uri.encode(patchTitle)}&url=${Uri.encode(downloadUrl)}"
     }
+    data object Guide : AppDestination("guide", com.berry.patchguide.R.string.tab_home, Icons.Default.Home) {
+        fun createRoute(outputPath: String = "", appliedFormat: String = "") =
+            "guide?outputPath=${Uri.encode(outputPath)}&format=${Uri.encode(appliedFormat)}"
+    }
 
     companion object {
         val bottomNavEntries = listOf(Home, Search, Library, Settings)
