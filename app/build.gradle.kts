@@ -6,8 +6,11 @@ plugins {
     alias(libs.plugins.hilt)
 }
 
-// Redirect build outputs to ASCII path to avoid CMake crashes on Korean username
-layout.buildDirectory.set(file("C:/tmp/bpo"))
+// On Windows with Korean username, CMake crashes on non-ASCII paths.
+// Redirect build outputs to ASCII-safe path only when running on Windows.
+if (System.getProperty("os.name").lowercase().contains("windows")) {
+    layout.buildDirectory.set(file("C:/tmp/bpo"))
+}
 
 android {
     namespace = "com.berry.patchguide"
@@ -53,7 +56,6 @@ android {
         cmake {
             path = file("src/main/cpp/CMakeLists.txt")
             version = "3.18.1"
-            buildStagingDirectory = file("C:/tmp/cxx_build")
         }
     }
 }
