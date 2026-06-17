@@ -15,7 +15,6 @@ import com.berry.patchguide.data.repository.PatchRepository
 import com.berry.patchguide.patching.PatchApplier
 import com.berry.patchguide.patching.PatchFormat
 import com.berry.patchguide.patching.PatchReport
-import com.berry.patchguide.patching.XdeltaApplier
 import com.berry.patchguide.patching.ZipApplier
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -39,9 +38,7 @@ sealed class ApplyUiState {
     data class Success(val report: PatchReport) : ApplyUiState()
     // Step 4: 실패
     data class Error(val message: String) : ApplyUiState()
-    // xdelta 미지원 안내
-    data class XdeltaUnsupported(val patchId: String) : ApplyUiState()
-    // ZIP 압축 해제 결과
+    // ZIP 압축 해제 결과 — innerPatches 중 하나를 선택하면 WaitingForRom으로 전환
     data class ZipExtracted(val destDir: File, val innerPatches: List<File>) : ApplyUiState()
 }
 
@@ -61,8 +58,6 @@ class ApplyPatchViewModel @Inject constructor(
 
     // 현재 선택된 패치 파일 (다운로드 완료 또는 사용자 지정)
     private var currentPatchFile: File? = null
-    // 현재 선택된 ROM Uri
-    private var selectedRomUri: Uri? = null
 
     /**
      * 패치 다운로드 URL로 다운로드를 시작합니다.
@@ -86,9 +81,6 @@ class ApplyPatchViewModel @Inject constructor(
                 val format = PatchFormat.detect(magicBytes)
 
                 when (format) {
-                    PatchFormat.XDELTA -> {
-                        _uiState.value = ApplyUiState.XdeltaUnsupported(patchId)
-                    }
                     PatchFormat.ZIP -> {
                         // ZIP 압축 해제
                         val extractDir = File(
@@ -133,7 +125,6 @@ class ApplyPatchViewModel @Inject constructor(
                 val magicBytes = destFile.inputStream().use { it.readNBytes(8) }
                 val format = PatchFormat.detect(magicBytes)
                 when (format) {
-                    PatchFormat.XDELTA -> _uiState.value = ApplyUiState.XdeltaUnsupported(patchId)
                     PatchFormat.ZIP -> {
                         val extractDir = File(context.cacheDir, "zip_extract_manual_${System.currentTimeMillis()}")
                         withContext(Dispatchers.IO) {
@@ -238,6 +229,15 @@ class ApplyPatchViewModel @Inject constructor(
 
     fun resetState() {
         _uiState.value = ApplyUiState.Idle
+    }
+
+    /**
+     * ZIP 압축 해제 결과 화면에서 내부 패치 파일을 선택하면
+     * 해당 파일을 currentPatchFile로 설정하고 WaitingForRom 상태로 전환합니다.
+     */
+    fun selectInnerPatch(patchFile: File) {
+        currentPatchFile = patchFile
+        _uiState.value = ApplyUiState.WaitingForRom(patchFile, patchId)
     }
 
     override fun onCleared() {

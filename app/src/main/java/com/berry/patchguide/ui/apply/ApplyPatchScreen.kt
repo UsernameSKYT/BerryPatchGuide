@@ -3,9 +3,11 @@ package com.berry.patchguide.ui.apply
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,6 +18,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.FolderOpen
@@ -43,7 +46,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.berry.patchguide.patching.XdeltaApplier
 import com.berry.patchguide.patching.ZipApplier
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -141,14 +143,11 @@ fun ApplyPatchScreen(
                     )
                 }
 
-                is ApplyUiState.XdeltaUnsupported -> {
-                    XdeltaUnsupportedStep(onBack = onNavigateBack)
-                }
-
                 is ApplyUiState.ZipExtracted -> {
                     ZipExtractedStep(
                         destDir = state.destDir,
                         innerPatches = state.innerPatches,
+                        onSelectInnerPatch = { file -> viewModel.selectInnerPatch(file) },
                         onBack = onNavigateBack
                     )
                 }
@@ -219,12 +218,12 @@ private fun IdleStep(
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
                 Text(
-                    text = "지원 형식: IPS, UPS, BPS",
+                    text = "지원 형식: IPS, UPS, BPS, xdelta/VCDIFF",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onTertiaryContainer
                 )
                 Text(
-                    text = "xdelta/VCDIFF: 지원 예정",
+                    text = "ZIP: 압축 해제 후 내부 패치 파일 선택",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onTertiaryContainer
                 )
@@ -403,43 +402,10 @@ private fun ErrorStep(message: String, onRetry: () -> Unit, onBack: () -> Unit) 
 }
 
 @Composable
-private fun XdeltaUnsupportedStep(onBack: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            imageVector = Icons.Default.Info,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.secondary,
-            modifier = Modifier.size(64.dp)
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "xdelta 형식 — 지원 예정",
-            style = MaterialTheme.typography.headlineSmall
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = XdeltaApplier.UNSUPPORTED_MESSAGE,
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        Button(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-            Text("돌아가기")
-        }
-    }
-}
-
-@Composable
 private fun ZipExtractedStep(
     destDir: java.io.File,
     innerPatches: List<java.io.File>,
+    onSelectInnerPatch: (java.io.File) -> Unit,
     onBack: () -> Unit
 ) {
     Column(
@@ -459,34 +425,54 @@ private fun ZipExtractedStep(
             text = "ZIP 압축 해제 완료",
             style = MaterialTheme.typography.titleLarge
         )
-        Text(
-            text = ZipApplier.UNSUPPORTED_MESSAGE,
-            style = MaterialTheme.typography.bodyMedium
-        )
-        Text(
-            text = "압축 해제 위치: ${destDir.absolutePath}",
-            style = MaterialTheme.typography.bodySmall,
-            fontFamily = FontFamily.Monospace
-        )
 
         if (innerPatches.isNotEmpty()) {
             Text(
-                text = "내부 패치 파일 발견 (${innerPatches.size}개):",
+                text = "내부 패치 파일을 선택하면 ROM 적용 단계로 이동합니다.",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Text(
+                text = "내부 패치 파일 (${innerPatches.size}개):",
                 style = MaterialTheme.typography.labelMedium
             )
             innerPatches.forEach { file ->
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onSelectInnerPatch(file) },
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
                 ) {
-                    Text(
-                        text = file.name,
-                        modifier = Modifier.padding(8.dp),
-                        style = MaterialTheme.typography.bodySmall,
-                        fontFamily = FontFamily.Monospace
-                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = file.name,
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.bodySmall,
+                            fontFamily = FontFamily.Monospace
+                        )
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = "선택",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
                 }
             }
+        } else {
+            Text(
+                text = ZipApplier.UNSUPPORTED_MESSAGE,
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Text(
+                text = "압축 해제 위치: ${destDir.absolutePath}",
+                style = MaterialTheme.typography.bodySmall,
+                fontFamily = FontFamily.Monospace
+            )
         }
 
         Spacer(modifier = Modifier.height(8.dp))

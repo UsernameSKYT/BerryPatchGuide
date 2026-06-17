@@ -49,15 +49,7 @@ fun PatchCard(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clickable {
-                // 카드 클릭 시 다운로드 URL로 이동
-                patch.downloadUrl?.let { url ->
-                    if (url.isNotBlank()) {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                        context.startActivity(intent)
-                    }
-                }
-            },
+            .clickable { onApplyClick() },
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
