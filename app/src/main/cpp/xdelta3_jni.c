@@ -124,8 +124,8 @@ Java_com_berry_patchguide_patching_XdeltaNative_applyPatch(
         goto cleanup_strings;
     }
 
-    /* Set source (the original ROM as a single block) */
-    source.size      = (xoff_t)src_size;
+    /* Set source (the original ROM as a single block).
+     * xd3_source has no 'size' field; size is passed to xd3_set_source_and_size. */
     source.blksize   = (usize_t)src_size;
     source.onblk     = (usize_t)src_size;
     source.curblk    = src_buf;
