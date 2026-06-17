@@ -3,7 +3,6 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/colorSurface"
     android:padding="12dp">
 
     <LinearLayout
@@ -17,7 +16,7 @@
             android:layout_height="wrap_content"
             android:text="광고"
             android:textSize="10sp"
-            android:textColor="?attr/colorOnSurfaceVariant" />
+            android:textColor="@android:color/darker_gray" />
 
         <!-- 아이콘 + 헤드라인 + 별점 -->
         <LinearLayout
@@ -46,7 +45,7 @@
                     android:layout_height="wrap_content"
                     android:textStyle="bold"
                     android:textSize="14sp"
-                    android:textColor="?attr/colorOnSurface"
+                    android:textColor="@android:color/black"
                     android:maxLines="1"
                     android:ellipsize="end" />
 
@@ -69,7 +68,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="12sp"
-            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textColor="@android:color/darker_gray"
             android:maxLines="2"
             android:ellipsize="end"
             android:layout_marginTop="4dp" />
