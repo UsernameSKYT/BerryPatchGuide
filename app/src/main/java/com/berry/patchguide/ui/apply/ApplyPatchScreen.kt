@@ -79,7 +79,7 @@ fun ApplyPatchScreen(
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             result.data?.data?.let { uri ->
-                viewModel.applyPatch(it = uri)
+                viewModel.applyPatch(romUri = uri)
             }
         }
     }
