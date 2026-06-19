@@ -84,11 +84,15 @@ fun ApplyPatchScreen(
         }
     }
 
-    // 패치 파일 수동 선택 런처 (SAF)
+    // 패치 파일 수동 선택 런처 (SAF) - StartActivityForResult로 직접 Intent 실행
     val patchPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument()
-    ) { uri: Uri? ->
-        uri?.let { viewModel.setPatchFileFromUri(it) }
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            result.data?.data?.let { uri ->
+                viewModel.setPatchFileFromUri(uri)
+            }
+        }
     }
 
     Scaffold(
@@ -116,7 +120,20 @@ fun ApplyPatchScreen(
                         downloadUrl = downloadUrl,
                         onDownloadClick = { url -> viewModel.downloadPatch(url) },
                         onSelectPatchFile = {
-                            patchPickerLauncher.launch(arrayOf("*/*"))
+                            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                                addCategory(Intent.CATEGORY_OPENABLE)
+                                type = "*/*"
+                                putExtra(Intent.EXTRA_MIME_TYPES, arrayOf(
+                                    "application/octet-stream",
+                                    "application/zip",
+                                    "application/x-zip-compressed"
+                                ))
+                            }
+                            try {
+                                patchPickerLauncher.launch(intent)
+                            } catch (e: Exception) {
+                                context.startActivity(Intent.createChooser(intent, "패치 파일 선택"))
+                            }
                         }
                     )
                 }
@@ -285,7 +302,7 @@ private fun WaitingForRomStep(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            text = "2단계: ROM 파일 선택",
+            text = "2단계: 원본 ROM 파일 선택",
             style = MaterialTheme.typography.titleMedium
         )
 
@@ -309,7 +326,7 @@ private fun WaitingForRomStep(
         }
 
         Text(
-            text = "패치를 적용할 원본 ROM 파일을 선택하세요.",
+            text = "패치를 적용할 원본 게임 ROM 파일(.gb, .gba, .gbc 등)을 선택하세요.\n(다운로드한 패치 파일이 아닙니다)",
             style = MaterialTheme.typography.bodyMedium
         )
 
@@ -319,7 +336,7 @@ private fun WaitingForRomStep(
         ) {
             Icon(Icons.Default.FolderOpen, contentDescription = null)
             Spacer(modifier = Modifier.size(8.dp))
-            Text("ROM 파일 선택")
+            Text("원본 ROM 파일 선택")
         }
 
         Text(
