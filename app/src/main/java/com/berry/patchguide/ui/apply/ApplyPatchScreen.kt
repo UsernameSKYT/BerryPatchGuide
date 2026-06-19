@@ -1,5 +1,7 @@
 package com.berry.patchguide.ui.apply
 
+import android.app.Activity
+import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -42,6 +44,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -61,6 +64,7 @@ fun ApplyPatchScreen(
     viewModel: ApplyPatchViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     // 공유 인텐트 URI가 있으면 자동으로 로드
     LaunchedEffect(sharedPatchUri) {
@@ -69,11 +73,15 @@ fun ApplyPatchScreen(
         }
     }
 
-    // ROM 파일 선택 런처 (SAF)
+    // ROM 파일 선택 런처 (SAF) - StartActivityForResult로 직접 Intent 실행
     val romPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument()
-    ) { uri: Uri? ->
-        uri?.let { viewModel.applyPatch(it) }
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            result.data?.data?.let { uri ->
+                viewModel.applyPatch(it = uri)
+            }
+        }
     }
 
     // 패치 파일 수동 선택 런처 (SAF)
@@ -125,7 +133,20 @@ fun ApplyPatchScreen(
                     WaitingForRomStep(
                         patchFile = state.patchFile,
                         onSelectRom = {
-                            romPickerLauncher.launch(arrayOf("*/*"))
+                            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                                addCategory(Intent.CATEGORY_OPENABLE)
+                                type = "*/*"
+                                putExtra(Intent.EXTRA_MIME_TYPES, arrayOf(
+                                    "application/octet-stream",
+                                    "application/x-gba-rom",
+                                    "application/x-gameboy-rom"
+                                ))
+                            }
+                            try {
+                                romPickerLauncher.launch(intent)
+                            } catch (e: Exception) {
+                                context.startActivity(Intent.createChooser(intent, "ROM 파일 선택"))
+                            }
                         }
                     )
                 }
