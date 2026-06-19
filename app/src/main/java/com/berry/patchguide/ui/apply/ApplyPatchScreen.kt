@@ -136,11 +136,6 @@ fun ApplyPatchScreen(
                             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                                 addCategory(Intent.CATEGORY_OPENABLE)
                                 type = "*/*"
-                                putExtra(Intent.EXTRA_MIME_TYPES, arrayOf(
-                                    "application/octet-stream",
-                                    "application/x-gba-rom",
-                                    "application/x-gameboy-rom"
-                                ))
                             }
                             try {
                                 romPickerLauncher.launch(intent)
