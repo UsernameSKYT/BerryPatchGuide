@@ -43,7 +43,12 @@ sealed class ApplyUiState {
         val openUrl: String? = null
     ) : ApplyUiState()
     // ZIP 압축 해제 결과 — innerPatches 중 하나를 선택하면 WaitingForRom으로 전환
-    data class ZipExtracted(val destDir: File, val innerPatches: List<File>) : ApplyUiState()
+    // allFiles: 확장자로 인식되지 않는 경우 사용자가 직접 고를 수 있도록 압축 해제된 전체 파일 목록
+    data class ZipExtracted(
+        val destDir: File,
+        val innerPatches: List<File>,
+        val allFiles: List<File> = emptyList()
+    ) : ApplyUiState()
 }
 
 @HiltViewModel
@@ -177,7 +182,8 @@ class ApplyPatchViewModel @Inject constructor(
                         _uiState.value = ApplyUiState.Applying(p, "ZIP 압축 해제 중... ${(p * 100).toInt()}%")
                     }
                     val innerPatches = ZipApplier.findPatchFiles(extracted)
-                    _uiState.value = ApplyUiState.ZipExtracted(extractDir, innerPatches)
+                    val allFiles = extracted.filter { it.isFile }
+                    _uiState.value = ApplyUiState.ZipExtracted(extractDir, innerPatches, allFiles)
                 }
             }
             PatchFormat.UNKNOWN -> {

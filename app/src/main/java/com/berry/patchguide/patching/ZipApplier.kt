@@ -55,12 +55,20 @@ object ZipApplier {
     }
 
     /**
-     * ZIP 내 ROM 패치 파일(IPS/UPS/BPS) 목록을 반환합니다.
+     * ZIP 내 ROM 패치 파일(IPS/UPS/BPS/xdelta 등) 목록을 반환합니다.
+     * 확장자로 우선 판별하고, 확장자가 없거나 알 수 없는 파일은 내용(매직 바이트)으로 재판별합니다.
      */
     fun findPatchFiles(extractedFiles: List<File>): List<File> {
         return extractedFiles.filter { file ->
             val name = file.name.lowercase()
-            name.endsWith(".ips") || name.endsWith(".ups") || name.endsWith(".bps")
+            val knownExt = name.endsWith(".ips") || name.endsWith(".ups") || name.endsWith(".bps") ||
+                name.endsWith(".xdelta") || name.endsWith(".xd3") || name.endsWith(".vcdiff")
+            if (knownExt) {
+                true
+            } else {
+                val head = runCatching { file.inputStream().use { it.readNBytes(8) } }.getOrNull()
+                head != null && PatchFormat.detect(head) != PatchFormat.UNKNOWN
+            }
         }
     }
 

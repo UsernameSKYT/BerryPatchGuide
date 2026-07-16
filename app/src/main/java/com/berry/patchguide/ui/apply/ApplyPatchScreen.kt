@@ -221,6 +221,7 @@ fun ApplyPatchScreen(
                     ZipExtractedStep(
                         destDir = state.destDir,
                         innerPatches = state.innerPatches,
+                        allFiles = state.allFiles,
                         onSelectInnerPatch = { file -> viewModel.selectInnerPatch(file) },
                         onBack = onNavigateBack
                     )
@@ -524,9 +525,14 @@ private fun ErrorStep(
 private fun ZipExtractedStep(
     destDir: java.io.File,
     innerPatches: List<java.io.File>,
+    allFiles: List<java.io.File> = emptyList(),
     onSelectInnerPatch: (java.io.File) -> Unit,
     onBack: () -> Unit
 ) {
+    // 인식된 패치 파일이 있으면 그것만, 없으면 압축 해제된 전체 파일을 보여줘서
+    // 사용자가 직접 어떤 파일을 패치로 사용할지 선택할 수 있게 합니다.
+    val displayFiles = if (innerPatches.isNotEmpty()) innerPatches else allFiles
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -545,16 +551,20 @@ private fun ZipExtractedStep(
             style = MaterialTheme.typography.titleLarge
         )
 
-        if (innerPatches.isNotEmpty()) {
+        if (displayFiles.isNotEmpty()) {
             Text(
-                text = "내부 패치 파일을 선택하면 ROM 적용 단계로 이동합니다.",
+                text = if (innerPatches.isNotEmpty())
+                    "내부 패치 파일을 선택하면 ROM 적용 단계로 이동합니다."
+                else
+                    "알려진 패치 형식(IPS/UPS/BPS/xdelta)을 자동으로 찾지 못했습니다.\n" +
+                        "압축 해제된 파일 중 패치로 사용할 파일을 직접 선택하세요.",
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
-                text = "내부 패치 파일 (${innerPatches.size}개):",
+                text = "압축 해제된 파일 (${displayFiles.size}개):",
                 style = MaterialTheme.typography.labelMedium
             )
-            innerPatches.forEach { file ->
+            displayFiles.forEach { file ->
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -584,13 +594,8 @@ private fun ZipExtractedStep(
             }
         } else {
             Text(
-                text = ZipApplier.UNSUPPORTED_MESSAGE,
+                text = "압축 파일 안에서 어떠한 파일도 찾지 못했습니다.",
                 style = MaterialTheme.typography.bodyMedium
-            )
-            Text(
-                text = "압축 해제 위치: ${destDir.absolutePath}",
-                style = MaterialTheme.typography.bodySmall,
-                fontFamily = FontFamily.Monospace
             )
         }
 
