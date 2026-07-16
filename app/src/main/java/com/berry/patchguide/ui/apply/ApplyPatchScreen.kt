@@ -126,7 +126,13 @@ fun ApplyPatchScreen(
                                 putExtra(Intent.EXTRA_MIME_TYPES, arrayOf(
                                     "application/octet-stream",
                                     "application/zip",
-                                    "application/x-zip-compressed"
+                                    "application/x-zip-compressed",
+                                    "application/x-ips",
+                                    "application/x-ups",
+                                    "application/x-bps",
+                                    "application/x-xdelta",
+                                    "application/x-xdelta3",
+                                    "application/x-vcdiff"
                                 ))
                             }
                             try {
