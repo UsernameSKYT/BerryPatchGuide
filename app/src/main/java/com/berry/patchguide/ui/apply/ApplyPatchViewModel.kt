@@ -92,6 +92,18 @@ class ApplyPatchViewModel @Inject constructor(
                     }
                 }
 
+                // 다운로드한 패치 원본 파일을 공용 Downloads/BerryPatchGuide 폴더에도 저장
+                // (파일 관리자에서 확인/재사용 가능하도록)
+                val visibleName = downloadFileNameFromUrl(url, patchId)
+                withContext(Dispatchers.IO) {
+                    saveToDownloads(
+                        context = getApplication(),
+                        srcFile = destFile,
+                        fileName = visibleName,
+                        mimeType = mimeTypeForFileName(visibleName)
+                    )
+                }
+
                 processDownloadedFile(destFile)
             } catch (e: Exception) {
                 Log.e(TAG, "다운로드 실패", e)
@@ -226,15 +238,21 @@ class ApplyPatchViewModel @Inject constructor(
     }
 
     /**
-     * 출력 ROM을 Downloads/BerryPatchGuide/ 폴더에 저장합니다.
+     * 파일을 Downloads/BerryPatchGuide/ 폴더에 저장합니다.
+     * (패치 원본 다운로드, 패치 적용 결과 ROM 저장 등에 공용으로 사용)
      */
-    private fun saveToDownloads(context: Context, srcFile: File, fileName: String): String? {
+    private fun saveToDownloads(
+        context: Context,
+        srcFile: File,
+        fileName: String,
+        mimeType: String = "application/octet-stream"
+    ): String? {
         return try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 val resolver = context.contentResolver
                 val contentValues = ContentValues().apply {
                     put(MediaStore.Downloads.DISPLAY_NAME, fileName)
-                    put(MediaStore.Downloads.MIME_TYPE, "application/octet-stream")
+                    put(MediaStore.Downloads.MIME_TYPE, mimeType)
                     put(MediaStore.Downloads.RELATIVE_PATH, "Download/BerryPatchGuide")
                 }
                 val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
@@ -256,6 +274,34 @@ class ApplyPatchViewModel @Inject constructor(
         } catch (e: Exception) {
             Log.e(TAG, "Downloads 저장 실패", e)
             null
+        }
+    }
+
+    /**
+     * 다운로드 URL에서 표시용 파일명을 추출합니다. (예: patch.zip, rom.ips 등)
+     * URL에 파일명/확장자가 없으면 patchId 기반 기본 이름을 사용합니다.
+     */
+    private fun downloadFileNameFromUrl(url: String, patchId: String): String {
+        val lastSegment = url.substringBefore("?").substringBefore("#").substringAfterLast('/')
+        return if (lastSegment.isNotBlank() && lastSegment.contains('.')) {
+            lastSegment
+        } else {
+            "patch_$patchId"
+        }
+    }
+
+    /**
+     * 파일명의 확장자를 기준으로 MIME 타입을 추정합니다.
+     */
+    private fun mimeTypeForFileName(fileName: String): String {
+        return when (fileName.substringAfterLast('.', "").lowercase()) {
+            "zip" -> "application/zip"
+            "ips" -> "application/x-ips"
+            "ups" -> "application/x-ups"
+            "bps" -> "application/x-bps"
+            "xdelta", "xd3" -> "application/x-xdelta"
+            "vcdiff" -> "application/x-vcdiff"
+            else -> "application/octet-stream"
         }
     }
 
