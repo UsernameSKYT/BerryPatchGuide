@@ -95,6 +95,30 @@ fun ApplyPatchScreen(
         }
     }
 
+    // 패치 파일 선택 인텐트를 실행하는 공용 함수
+    val launchPatchFilePicker: () -> Unit = {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "*/*"
+            putExtra(Intent.EXTRA_MIME_TYPES, arrayOf(
+                "application/octet-stream",
+                "application/zip",
+                "application/x-zip-compressed",
+                "application/x-ips",
+                "application/x-ups",
+                "application/x-bps",
+                "application/x-xdelta",
+                "application/x-xdelta3",
+                "application/x-vcdiff"
+            ))
+        }
+        try {
+            patchPickerLauncher.launch(intent)
+        } catch (e: Exception) {
+            context.startActivity(Intent.createChooser(intent, "패치 파일 선택"))
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -119,28 +143,7 @@ fun ApplyPatchScreen(
                         patchTitle = patchTitle,
                         downloadUrl = downloadUrl,
                         onDownloadClick = { url -> viewModel.downloadPatch(url) },
-                        onSelectPatchFile = {
-                            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-                                addCategory(Intent.CATEGORY_OPENABLE)
-                                type = "*/*"
-                                putExtra(Intent.EXTRA_MIME_TYPES, arrayOf(
-                                    "application/octet-stream",
-                                    "application/zip",
-                                    "application/x-zip-compressed",
-                                    "application/x-ips",
-                                    "application/x-ups",
-                                    "application/x-bps",
-                                    "application/x-xdelta",
-                                    "application/x-xdelta3",
-                                    "application/x-vcdiff"
-                                ))
-                            }
-                            try {
-                                patchPickerLauncher.launch(intent)
-                            } catch (e: Exception) {
-                                context.startActivity(Intent.createChooser(intent, "패치 파일 선택"))
-                            }
-                        }
+                        onSelectPatchFile = launchPatchFilePicker
                     )
                 }
 
@@ -194,9 +197,21 @@ fun ApplyPatchScreen(
                     ErrorStep(
                         message = state.message,
                         retryable = state.retryable,
+                        openUrl = state.openUrl,
                         onRetry = {
                             if (state.retryable) viewModel.retryDownload()
                             else viewModel.resetState()
+                        },
+                        onOpenUrl = { url ->
+                            try {
+                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                            } catch (e: Exception) {
+                                // 열 수 있는 브라우저가 없는 경우 무시
+                            }
+                        },
+                        onSelectPatchFile = {
+                            viewModel.resetState()
+                            launchPatchFilePicker()
                         },
                         onBack = onNavigateBack
                     )
@@ -451,7 +466,10 @@ private fun SuccessStep(
 private fun ErrorStep(
     message: String,
     retryable: Boolean,
+    openUrl: String? = null,
     onRetry: () -> Unit,
+    onOpenUrl: (String) -> Unit = {},
+    onSelectPatchFile: () -> Unit = {},
     onBack: () -> Unit
 ) {
     Column(
@@ -481,10 +499,21 @@ private fun ErrorStep(
             modifier = Modifier.padding(horizontal = 16.dp)
         )
         Spacer(modifier = Modifier.height(24.dp))
-        Button(onClick = onRetry, modifier = Modifier.fillMaxWidth()) {
-            Text(if (retryable) "다시 시도" else "처음으로")
+        if (!openUrl.isNullOrBlank()) {
+            Button(onClick = { onOpenUrl(openUrl) }, modifier = Modifier.fillMaxWidth()) {
+                Text("웹 브라우저에서 열기")
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedButton(onClick = onSelectPatchFile, modifier = Modifier.fillMaxWidth()) {
+                Text("이미 다운로드한 패치 파일 선택")
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+        } else {
+            Button(onClick = onRetry, modifier = Modifier.fillMaxWidth()) {
+                Text(if (retryable) "다시 시도" else "처음으로")
+            }
+            Spacer(modifier = Modifier.height(8.dp))
         }
-        Spacer(modifier = Modifier.height(8.dp))
         OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
             Text("뒤로가기")
         }

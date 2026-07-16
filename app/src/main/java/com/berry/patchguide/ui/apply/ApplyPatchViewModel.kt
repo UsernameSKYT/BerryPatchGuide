@@ -36,8 +36,12 @@ sealed class ApplyUiState {
     data class Applying(val progress: Float, val label: String = "") : ApplyUiState()
     // Step 4: 성공
     data class Success(val report: PatchReport) : ApplyUiState()
-    // Step 4: 실패 (retryable: 재시도 가능 여부)
-    data class Error(val message: String, val retryable: Boolean = true) : ApplyUiState()
+    // Step 4: 실패 (retryable: 재시도 가능 여부, openUrl: 브라우저로 열어 수동 다운로드할 페이지)
+    data class Error(
+        val message: String,
+        val retryable: Boolean = true,
+        val openUrl: String? = null
+    ) : ApplyUiState()
     // ZIP 압축 해제 결과 — innerPatches 중 하나를 선택하면 WaitingForRom으로 전환
     data class ZipExtracted(val destDir: File, val innerPatches: List<File>) : ApplyUiState()
 }
@@ -104,7 +108,7 @@ class ApplyPatchViewModel @Inject constructor(
                     )
                 }
 
-                processDownloadedFile(destFile)
+                processDownloadedFile(destFile, sourceUrl = url)
             } catch (e: Exception) {
                 Log.e(TAG, "다운로드 실패", e)
                 _uiState.value = ApplyUiState.Error(
@@ -143,10 +147,23 @@ class ApplyPatchViewModel @Inject constructor(
 
     /**
      * 다운로드/복사된 파일의 포맷을 감지하고 다음 상태로 전환합니다.
+     * sourceUrl: 다운로드에 사용된 원본 URL (HTML 페이지가 감지될 경우 브라우저로 열어주기 위해 사용)
      */
-    private suspend fun processDownloadedFile(destFile: File) {
-        val magicBytes = destFile.inputStream().use { it.readNBytes(8) }
-        val format = PatchFormat.detect(magicBytes)
+    private suspend fun processDownloadedFile(destFile: File, sourceUrl: String? = null) {
+        val headBytes = destFile.inputStream().use { it.readNBytes(512) }
+
+        if (looksLikeHtml(headBytes)) {
+            _uiState.value = ApplyUiState.Error(
+                message = "이 사이트는 앱에서 바로 다운로드할 수 없는 페이지 링크를 제공합니다.\n" +
+                    "아래 버튼으로 웹 브라우저에서 열어 파일을 직접 다운로드한 뒤,\n" +
+                    "\"이미 다운로드한 패치 파일 선택\"으로 다시 시도해주세요.",
+                retryable = false,
+                openUrl = sourceUrl
+            )
+            return
+        }
+
+        val format = PatchFormat.detect(headBytes)
 
         when (format) {
             PatchFormat.ZIP -> {
@@ -163,11 +180,30 @@ class ApplyPatchViewModel @Inject constructor(
                     _uiState.value = ApplyUiState.ZipExtracted(extractDir, innerPatches)
                 }
             }
+            PatchFormat.UNKNOWN -> {
+                _uiState.value = ApplyUiState.Error(
+                    message = "지원하지 않는 패치 형식입니다. (IPS, UPS, BPS, xdelta, ZIP만 지원)\n" +
+                        "다운로드된 파일이 손상되었거나 실제 패치 파일이 아닐 수 있습니다.",
+                    retryable = sourceUrl != null,
+                    openUrl = sourceUrl
+                )
+            }
             else -> {
                 currentPatchFile = destFile
                 _uiState.value = ApplyUiState.WaitingForRom(destFile, patchId)
             }
         }
+    }
+
+    /**
+     * 응답 내용이 실제 패치 파일이 아닌 HTML 웹페이지인지 확인합니다.
+     * (모드 상세/다운로드 안내 페이지 URL이 downloadUrl로 잘못 전달된 경우 감지)
+     */
+    private fun looksLikeHtml(bytes: ByteArray): Boolean {
+        val text = bytes.decodeToString().trimStart().lowercase()
+        return text.startsWith("<!doctype html") ||
+            text.startsWith("<html") ||
+            text.startsWith("<?xml") && text.contains("html")
     }
 
     /**
