@@ -146,6 +146,9 @@ dependencies {
     // AdMob
     implementation(libs.admob)
 
+    // DocumentFile (모드 설치: SAF 폴더에 파일 복사)
+    implementation(libs.androidx.documentfile)
+
     // Unit Tests
     testImplementation("junit:junit:4.13.2")
 }

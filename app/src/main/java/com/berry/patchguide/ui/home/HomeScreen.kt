@@ -13,6 +13,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Extension
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -38,6 +40,7 @@ import com.berry.patchguide.ui.components.PatchCard
 @Composable
 fun HomeScreen(
     onNavigateToApply: (patchId: String, patchTitle: String, downloadUrl: String) -> Unit = { _, _, _ -> },
+    onNavigateToModInstall: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -80,6 +83,17 @@ fun HomeScreen(
                 Icon(Icons.Default.Build, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("내 파일로 패치 적용하기")
+            }
+
+            OutlinedButton(
+                onClick = onNavigateToModInstall,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            ) {
+                Icon(Icons.Default.Extension, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("모드 설치 (ZIP 폴더형 모드)")
             }
 
             Box(

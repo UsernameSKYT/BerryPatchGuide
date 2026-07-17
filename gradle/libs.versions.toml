@@ -19,6 +19,7 @@ datastore = "1.1.6"
 paging = "3.3.6"
 billing = "7.1.1"
 admob = "23.6.0"
+documentfile = "1.0.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -67,6 +68,9 @@ billing-client = { group = "com.android.billingclient", name = "billing-ktx", ve
 
 # AdMob
 admob = { group = "com.google.android.gms", name = "play-services-ads", version.ref = "admob" }
+
+# DocumentFile (SAF 트리 URI에 파일/폴더 생성)
+androidx-documentfile = { group = "androidx.documentfile", name = "documentfile", version.ref = "documentfile" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

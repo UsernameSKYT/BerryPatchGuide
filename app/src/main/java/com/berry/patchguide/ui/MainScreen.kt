@@ -23,6 +23,7 @@ import com.berry.patchguide.ui.apply.ApplyPatchScreen
 import com.berry.patchguide.ui.guide.GuideScreen
 import com.berry.patchguide.ui.home.HomeScreen
 import com.berry.patchguide.ui.library.LibraryScreen
+import com.berry.patchguide.ui.modinstall.ModInstallScreen
 import com.berry.patchguide.ui.navigation.AppDestination
 import com.berry.patchguide.ui.payment.PaymentScreen
 import com.berry.patchguide.ui.search.SearchScreen
@@ -87,6 +88,9 @@ fun MainScreen(sharedPatchUri: Uri? = null) {
                         navController.navigate(
                             AppDestination.ApplyPatch.createRoute(patchId, patchTitle, downloadUrl)
                         )
+                    },
+                    onNavigateToModInstall = {
+                        navController.navigate(AppDestination.ModInstall.route)
                     }
                 )
             }
@@ -108,6 +112,11 @@ fun MainScreen(sharedPatchUri: Uri? = null) {
                 )
             }
             composable(AppDestination.Payment.route) { PaymentScreen() }
+            composable(AppDestination.ModInstall.route) {
+                ModInstallScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
             composable(
                 route = "apply/{patchId}?title={title}&url={url}",
                 arguments = listOf(

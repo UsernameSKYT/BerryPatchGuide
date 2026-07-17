@@ -3,6 +3,7 @@ package com.berry.patchguide.ui.navigation
 import android.net.Uri
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmarks
+import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
@@ -26,6 +27,7 @@ sealed class AppDestination(
         fun createRoute(outputPath: String = "", appliedFormat: String = "") =
             "guide?outputPath=${Uri.encode(outputPath)}&format=${Uri.encode(appliedFormat)}"
     }
+    data object ModInstall : AppDestination("mod_install", com.berry.patchguide.R.string.tab_home, Icons.Default.Extension)
 
     companion object {
         val bottomNavEntries = listOf(Home, Search, Library, Settings)
