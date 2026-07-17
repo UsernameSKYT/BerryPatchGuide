@@ -2,6 +2,7 @@ package com.berry.patchguide.data.ads
 
 import android.content.Context
 import android.util.Log
+import com.berry.patchguide.BuildConfig
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdLoader
 import com.google.android.gms.ads.AdRequest
@@ -26,9 +27,10 @@ class AdManager @Inject constructor(
     private var retryRunnable: Runnable? = null
 
     companion object {
-        // Test IDs for debugging
-        const val BANNER_AD_UNIT_ID = "ca-app-pub-3940256099942544/6300978111"
-        const val NATIVE_AD_UNIT_ID = "ca-app-pub-3940256099942544/2247696110"
+        // 디버그 빌드: 항상 테스트 ID. 릴리즈 빌드: local.properties에 설정한 실제 광고 ID
+        // (app/build.gradle.kts의 buildConfigField 참고)
+        const val BANNER_AD_UNIT_ID = BuildConfig.BANNER_AD_UNIT_ID
+        const val NATIVE_AD_UNIT_ID = BuildConfig.NATIVE_AD_UNIT_ID
     }
 
     private val _isInitialized = MutableStateFlow(false)

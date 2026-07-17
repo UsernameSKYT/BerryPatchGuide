@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -11,6 +13,28 @@ plugins {
 if (System.getProperty("os.name").lowercase().contains("windows")) {
     layout.buildDirectory.set(file("C:/tmp/bpo"))
 }
+
+// 실제 AdMob 광고 ID 로딩 (local.properties, git에 커밋되지 않음)
+// AdMob 콘솔에서 앱/광고 단위를 만든 후 아래 3개 값을 local.properties에 추가하면
+// release 빌드부터 자동으로 테스트 광고 대신 실제(수익화) 광고가 적용됩니다.
+//   ADMOB_APP_ID=ca-app-pub-xxxxxxxxxxxxxxxx~yyyyyyyyyy
+//   ADMOB_BANNER_AD_UNIT_ID=ca-app-pub-xxxxxxxxxxxxxxxx/yyyyyyyyyy
+//   ADMOB_NATIVE_AD_UNIT_ID=ca-app-pub-xxxxxxxxxxxxxxxx/yyyyyyyyyy
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) {
+        file.inputStream().use { load(it) }
+    }
+}
+
+// 값이 없으면 Google 공식 테스트 ID로 안전하게 폴백
+val testAdmobAppId = "ca-app-pub-3940256099942544~3347511713"
+val testBannerAdUnitId = "ca-app-pub-3940256099942544/6300978111"
+val testNativeAdUnitId = "ca-app-pub-3940256099942544/2247696110"
+
+val realAdmobAppId = localProperties.getProperty("ADMOB_APP_ID") ?: testAdmobAppId
+val realBannerAdUnitId = localProperties.getProperty("ADMOB_BANNER_AD_UNIT_ID") ?: testBannerAdUnitId
+val realNativeAdUnitId = localProperties.getProperty("ADMOB_NATIVE_AD_UNIT_ID") ?: testNativeAdUnitId
 
 android {
     namespace = "com.berry.patchguide"
@@ -29,6 +53,11 @@ android {
         ndk {
             abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64")
         }
+
+        // 기본값(디버그 등): 항상 Google 공식 테스트 광고 ID 사용 (안전)
+        manifestPlaceholders["admobAppId"] = testAdmobAppId
+        buildConfigField("String", "BANNER_AD_UNIT_ID", "\"$testBannerAdUnitId\"")
+        buildConfigField("String", "NATIVE_AD_UNIT_ID", "\"$testNativeAdUnitId\"")
     }
 
     buildTypes {
@@ -38,6 +67,11 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+
+            // 릴리즈 빌드: local.properties에 실제 광고 ID가 있으면 그 값을 사용 (없으면 테스트 ID 유지)
+            manifestPlaceholders["admobAppId"] = realAdmobAppId
+            buildConfigField("String", "BANNER_AD_UNIT_ID", "\"$realBannerAdUnitId\"")
+            buildConfigField("String", "NATIVE_AD_UNIT_ID", "\"$realNativeAdUnitId\"")
         }
     }
     compileOptions {
