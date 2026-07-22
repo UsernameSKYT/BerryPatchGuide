@@ -68,6 +68,10 @@ android {
                 "proguard-rules.pro"
             )
 
+            // 정식 서명 키가 없는 동안은 디버그 키로 서명해 테스트 설치가 가능하도록 함.
+            // (Play 스토어 정식 배포 시에는 별도 릴리즈 키스토어로 교체 필요)
+            signingConfig = signingConfigs.getByName("debug")
+
             // 릴리즈 빌드: local.properties에 실제 광고 ID가 있으면 그 값을 사용 (없으면 테스트 ID 유지)
             manifestPlaceholders["admobAppId"] = realAdmobAppId
             buildConfigField("String", "BANNER_AD_UNIT_ID", "\"$realBannerAdUnitId\"")

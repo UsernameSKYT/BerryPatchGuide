@@ -61,3 +61,19 @@ jobs:
           name: app-debug-${{ github.sha }}
           path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 14
+
+      - name: Write local.properties (AdMob real IDs)
+        run: |
+          echo "ADMOB_APP_ID=${{ secrets.ADMOB_APP_ID }}" >> local.properties
+          echo "ADMOB_BANNER_AD_UNIT_ID=${{ secrets.ADMOB_BANNER_AD_UNIT_ID }}" >> local.properties
+          echo "ADMOB_NATIVE_AD_UNIT_ID=${{ secrets.ADMOB_NATIVE_AD_UNIT_ID }}" >> local.properties
+
+      - name: Build Release APK (debug-signed for testing)
+        run: ./gradlew assembleRelease --no-daemon --stacktrace
+
+      - name: Upload Release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-${{ github.sha }}
+          path: app/build/outputs/apk/release/app-release.apk
+          retention-days: 14
