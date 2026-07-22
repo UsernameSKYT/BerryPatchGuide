@@ -36,6 +36,16 @@ val realAdmobAppId = localProperties.getProperty("ADMOB_APP_ID") ?: testAdmobApp
 val realBannerAdUnitId = localProperties.getProperty("ADMOB_BANNER_AD_UNIT_ID") ?: testBannerAdUnitId
 val realNativeAdUnitId = localProperties.getProperty("ADMOB_NATIVE_AD_UNIT_ID") ?: testNativeAdUnitId
 
+// 릴리즈 서명 키 (CI 환경변수로 주입, 로컬에는 없을 수 있음 -> 없으면 debug 서명으로 폴백)
+val releaseKeystorePath = System.getenv("RELEASE_KEYSTORE_PATH")
+val releaseKeystorePassword = System.getenv("RELEASE_KEYSTORE_PASSWORD")
+val releaseKeyAlias = System.getenv("RELEASE_KEY_ALIAS")
+val releaseKeyPassword = System.getenv("RELEASE_KEY_PASSWORD")
+val hasReleaseSigning = !releaseKeystorePath.isNullOrBlank() &&
+    !releaseKeystorePassword.isNullOrBlank() &&
+    !releaseKeyAlias.isNullOrBlank() &&
+    !releaseKeyPassword.isNullOrBlank()
+
 android {
     namespace = "com.berry.patchguide"
     compileSdk = 36
@@ -60,6 +70,17 @@ android {
         buildConfigField("String", "NATIVE_AD_UNIT_ID", "\"$testNativeAdUnitId\"")
     }
 
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = file(releaseKeystorePath!!)
+                storePassword = releaseKeystorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -68,9 +89,13 @@ android {
                 "proguard-rules.pro"
             )
 
-            // 정식 서명 키가 없는 동안은 디버그 키로 서명해 테스트 설치가 가능하도록 함.
-            // (Play 스토어 정식 배포 시에는 별도 릴리즈 키스토어로 교체 필요)
-            signingConfig = signingConfigs.getByName("debug")
+            // 정식 릴리즈 키스토어가 CI 환경변수로 주입되면 그것으로 서명하고,
+            // 로컬 등 키가 없는 환경에서는 debug 키로 폴백해 테스트 설치는 계속 가능하게 함.
+            signingConfig = if (hasReleaseSigning) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
 
             // 릴리즈 빌드: local.properties에 실제 광고 ID가 있으면 그 값을 사용 (없으면 테스트 ID 유지)
             manifestPlaceholders["admobAppId"] = realAdmobAppId
